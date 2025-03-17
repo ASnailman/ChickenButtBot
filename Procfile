@@ -1,1 +1,1 @@
-Worker: node ./chickenbutt.js
+worker: node ./chickenbutt.js
