@@ -1,6 +1,3 @@
-
-require('dotenv').config();
-
 require('dotenv').config();
 const { Client, GatewayIntentBits, Partials } = require('discord.js');
 const schedule = require('node-schedule');
@@ -22,6 +19,12 @@ const GUILD_ID = process.env.GUILD_ID;
 async function checkMessages() {
     const guild = client.guilds.cache.get('');
     if (!guild) return;
+}
+
+async function selectUser() {
+    const guild = client.guild.cache.get(GUILD_ID)
+    const members = await guild.members.fetch();
+    const randomMember = members.filter(m => !m.user.bot).random();
 }
 
 // 0 0 * * * is a Cron Expression
@@ -53,6 +56,6 @@ client.on('ready', () => {
 
 client.on('messageCreate', (message) => {
     if (message.author.bot) return;
-    
 });
+
 client.login(BOT_TOKEN); 
