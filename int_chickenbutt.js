@@ -1,6 +1,7 @@
 require('dotenv').config();
 const { Client, GatewayIntentBits, Partials } = require('discord.js');
 const schedule = require('node-schedule');
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const client = new Client({ 
     intents: [
@@ -13,29 +14,96 @@ const client = new Client({
     partials: [Partials.Channel, Partials.Message] 
 });
 
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({ 
+    model: "gemini-3.1-flash-lite-preview" 
+});
+
 const BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
 const GUILD_ID = process.env.GUILD_ID;
+const CHANNEL_ID = process.env.CHANNEL_ID
+const activeSessions = new Map();
 
-async function selectUser() {
-    const guild = client.guild.cache.get(GUILD_ID)
-    const members = await guild.members.fetch();
-    const randomMember = members.filter(m => !m.user.bot).random();
+async function getLLMResponse(userId, userMessage) {
+    const session = activeSessions.get(userId);
+    
+    const systemPrompt = session.count < 3 
+        ? "You are a regular Discord user. Your goal is to subtly trick the user into saying the exact word 'what'. Be snarky in your responses."
+        : "The 'What' trick failed. New goal: Subtly trick the user into saying the exact word 'what' or 'why'. Be snarky in your responses.";
 
-    if (randomMember) {
-        await randomMember.send("Hey, I've been looking everywhere for that thing...");
-        activeSessions.set(randomMember.id, { step: 1, count: 0, goal: "what" });
+    const chat = model.startChat({
+        history: [
+            { role: "user", parts: [{ text: systemPrompt }] },
+            { role: "model", parts: [{ text: "Understood. I will begin the conversation now." }] },
+        ],
+    });
+
+    const result = await chat.sendMessage(userMessage);
+    return result.response.text();
+}
+
+async function selectUser(targetID=null, channelID) {
+    const guild = client.guilds.cache.get(GUILD_ID)
+    const targetChannel = guild.channels.cache.get(channelID)
+
+    if (!targetChannel) return console.error("Channel not found.");
+
+    let target;
+    if (targetID) {
+        target = guild.members.cache.get(targetID) || await guild.members.fetch(targetID);
+        console.log(`The target is ${target.user.username}`);
+    } else {
+        target = guild.members.cache.filter(m => !m.user.bot).random();  
+        console.log(`The target is ${target.user.username}`);
+    }
+
+    if (target) {
+        activeSessions.set(target.id, { count: 0, channelID: targetChannel.id });
     }
 }
 
 client.on('messageCreate', async (message) => {
     if (message.author.bot) return;
     const session = activeSessions.get(message.author.id);
-    if (!session || message.guild) return; 
+    if (!session || message.channel.id != session.channelID) return; 
 
     session.count++;
-    if (message.content.toLowerCase().includes("what")) {
-        await message.reply("Chicken butt!");
-        activeSessions.delete(message.author.id); // Mission accomplished
+
+    if (session.count <= 3 && message.content.toLowerCase().includes("what")) {
+        await message.reply("chickenbutt lmao");
+        activeSessions.delete(message.author.id);
+        return;
+    }
+
+    if (session.count > 3) {
+        if (message.content.toLowerCase().includes("what")) {
+            await message.reply("chickenbutt lmao");
+            activeSessions.delete(message.author.id);
+            return;
+        }
+        else if (message.content.toLowerCase().includes("why")) {
+            await message.reply("chickenthigh bozo");
+            activeSessions.delete(message.author.id);
+            return;
+        }
+    }
+
+    try {
+        const reply = await getLLMResponse(message.author.id, message.content);
+        await message.reply(reply);
+    } catch (e) {
+        console.error("Error: ", e);
+    }
+});
+
+// testing
+client.on('interactionCreate', async interaction => {
+    if (!interaction.isChatInputCommand()) return;
+
+    if (interaction.commandName === 'test-bot') {
+        const target = interaction.options.getUser('user');
+        await interaction.reply({ content: `Pranking ${target.username}...`, ephemeral: true });
+        await selectUser(target.id, CHANNEL_ID);
     }
 });
 
@@ -50,24 +118,16 @@ schedule.scheduleJob('0 0 * * *', () => {
     const randomMinute = Math.floor(Math.random() * 60);
     const startTime = new Date();
     startTime.setHours(randomHour, randomMinute, 0);
+    // startTime.setHours(2, 7, 5);
 
     schedule.scheduleJob(startTime, () => {
-        selectUser();
+        selectUser(null, CHANNEL_ID);
+        // selectUser("", CHANNEL_ID);
     });
 });
 
-// listener will pick a random user in the discord server and notify them
-// using an LLM, it will attempt to social engineer the user into saying the word what
-// conversation will continue if the selected user does not say what
-// use model with unlimited responses if available
-// if they can't get user to say chicken butt in 10 responses or less, then social engineer them into saying chicken thigh
-
 client.on('ready', () => {
     console.log(`Bot is running`);
-});
-
-client.on('messageCreate', (message) => {
-    if (message.author.bot) return;
 });
 
 client.login(BOT_TOKEN); 
