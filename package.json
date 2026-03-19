@@ -19,8 +19,12 @@
   },
   "homepage": "https://github.com/ASnailman/ChickenButtBot#readme",
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "discord.js": "^14.25.1",
     "dotenv": "^16.4.7",
     "node-schedule": "^2.1.1"
+  },
+  "overrides": {
+    "undici": "6.24.0"
   }
 }

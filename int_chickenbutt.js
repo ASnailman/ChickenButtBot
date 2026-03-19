@@ -16,16 +16,28 @@ const client = new Client({
 const BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
 const GUILD_ID = process.env.GUILD_ID;
 
-async function checkMessages() {
-    const guild = client.guilds.cache.get('');
-    if (!guild) return;
-}
-
 async function selectUser() {
     const guild = client.guild.cache.get(GUILD_ID)
     const members = await guild.members.fetch();
     const randomMember = members.filter(m => !m.user.bot).random();
+
+    if (randomMember) {
+        await randomMember.send("Hey, I've been looking everywhere for that thing...");
+        activeSessions.set(randomMember.id, { step: 1, count: 0, goal: "what" });
+    }
 }
+
+client.on('messageCreate', async (message) => {
+    if (message.author.bot) return;
+    const session = activeSessions.get(message.author.id);
+    if (!session || message.guild) return; 
+
+    session.count++;
+    if (message.content.toLowerCase().includes("what")) {
+        await message.reply("Chicken butt!");
+        activeSessions.delete(message.author.id); // Mission accomplished
+    }
+});
 
 // 0 0 * * * is a Cron Expression
 // 1st	0	Minute (0 - 59)
@@ -40,7 +52,7 @@ schedule.scheduleJob('0 0 * * *', () => {
     startTime.setHours(randomHour, randomMinute, 0);
 
     schedule.scheduleJob(startTime, () => {
-        checkMessages();
+        selectUser();
     });
 });
 
