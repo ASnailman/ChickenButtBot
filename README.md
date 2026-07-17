@@ -2,6 +2,8 @@
 
 You know that dumb joke where someone says "what?" and you fire back "chicken butt!"? This is a Discord bot that pulls that on your friends — except it's patient, sneaky, and now it's got a brain.
 
+Download at: https://top.gg/bot/1350976410872844379?s=06fed675f1e0e
+
 ## What it does
 
 Every day, ChickenButtBot picks a random online member of your server and quietly starts a conversation with them. Its one and only mission: get them to say the word **"what"** so it can hit them with the classic **"chickenbutt lmao"**.
