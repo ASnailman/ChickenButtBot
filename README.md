@@ -12,11 +12,11 @@ If it can't bait you into saying "what" after a few messages, it doesn't give up
 
 ## Features
 
-- **🎯 A random victim every day** — a scheduler fires once a day at a random time between 9am and 9pm, so nobody sees it coming.
-- **🧠 Actually intelligent** — Gemini drives the conversation instead of the bot just watching for a keyword. It improvises and tries to lead you into the trap.
-- **🔁 Adapts when it's losing** — starts out hunting for "what"; if that flops after three messages, it also starts fishing for "why".
-- **🐔 Two punchlines** — "chickenbutt lmao" for *what*, "chickenthigh bozo" for *why*.
-- **🧪 Manual trigger** — a `/test-bot` slash command lets you sic the bot on a specific person on demand (great for testing, or for pure evil).
+- **A random victim every day** — a scheduler fires once a day at a random time between 9am and 9pm, so nobody sees it coming.
+- **Actually intelligent** — Gemini drives the conversation instead of the bot just watching for a keyword. It improvises and tries to lead you into the trap.
+- **Adapts when it's losing** — starts out hunting for "what"; if that flops after three messages, it also starts fishing for "why".
+- **Two punchlines** — "chickenbutt lmao" for *what*, "chickenthigh bozo" for *why*.
+- **Manual trigger** — a `/test-bot` slash command lets you sic the bot on a specific person on demand (great for testing, or for pure evil).
 
 ## How it works
 
@@ -29,11 +29,12 @@ Under the hood, the bot keeps a small in-memory record of who it's currently pra
 ## Setup
 
 1. **Install dependencies**
+
    ```bash
    npm install
    ```
-
 2. **Create a `.env` file** in the project folder with your own values:
+
    ```env
    DISCORD_BOT_TOKEN=your-bot-token
    CLIENT_ID=your-application-id
@@ -41,13 +42,13 @@ Under the hood, the bot keeps a small in-memory record of who it's currently pra
    CHANNEL_ID=the-channel-the-bot-should-prank-in
    GEMINI_API_KEY=your-google-gemini-api-key
    ```
-
 3. **Register the slash command** (only needed once, or after changing commands):
+
    ```bash
    node deploy_commands.js
    ```
-
 4. **Start the bot**
+
    ```bash
    npm start
    ```
